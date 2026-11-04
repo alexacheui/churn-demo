@@ -5,6 +5,8 @@ import joblib
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 
 ROOT = Path(__file__).resolve().parents[1]
 FEATURES = ["tenure_months", "monthly_spend", "support_tickets"]
@@ -12,7 +14,9 @@ FEATURES = ["tenure_months", "monthly_spend", "support_tickets"]
 
 def train() -> float:
     data = pd.read_csv(ROOT / "data" / "churn_sample.csv")
-    model = LogisticRegression(random_state=42, max_iter=1_000)
+    # Scaling the inputs and a moderate C keep probabilities between 0 and 1
+    # instead of jumping straight to 0% or 100% on this tiny data set.
+    model = make_pipeline(StandardScaler(), LogisticRegression(C=0.3, random_state=42, max_iter=1_000))
     model.fit(data[FEATURES], data["churned"])
 
     accuracy = accuracy_score(data["churned"], model.predict(data[FEATURES]))
